@@ -25,22 +25,6 @@ $result = "FAIL"
 $connect_test_result = "NOT CONNECTED"
 $key_debug = Array.new
 
-# Runs the ssh command
-# Returns result to user
-# Saves the returned information from server
-# Creates or Adds to: 2 log files in the log directory:
-#     1. Named after the command used, this contains:
-#           - The command used
-#           - The commands output
-#           - The local server and client time
-#           - The account used
-#           - IP address used to access
-#     2. A Master Log named 'ssh_dashboard_master.log'
-#           - The account used
-#           - Client time
-#           - Command used
-# Removes special characters from the command so when naming the log it's not a invalid filename
-
 def run_ssh_cmd(command)
     local_time = Time.now.to_s
     log_file_name = "logs/ssh_dashboard_#{command.gsub(/[^0-9A-Za-z]/, '')}.log"
@@ -272,18 +256,25 @@ def network(keys_entered)
     menu_length = network.length + 2
     if keys_entered == '1'
         run_ssh_cmd(network[0])
+        return_on_enter
     elsif keys_entered == '2'
         run_ssh_cmd(network[1])
+        return_on_enter
     elsif keys_entered == '3'
         run_ssh_cmd(network[2])
+        return_on_enter
     elsif keys_entered == '4'
         run_ssh_cmd(network[3])
+        return_on_enter
     elsif keys_entered == '5'
         run_ssh_cmd(network[4])
+        return_on_enter
     elsif keys_entered == '6'
         run_ssh_cmd(network[5])
+        return_on_enter
     elsif keys_entered == '7'
         run_ssh_cmd(network[6])
+        return_on_enter
     elsif keys_entered == '8'
         menu_navigator('tools')
     elsif keys_entered == '9'
@@ -298,10 +289,13 @@ def cpu(keys_entered)
     menu_length = cpu.length + 2
     if keys_entered == "1"
         run_ssh_cmd(cpu[0])
+        return_on_enter
     elsif keys_entered == "2"
         run_ssh_cmd(cpu[1])
+        return_on_enter
     elsif keys_entered == "3"
         run_ssh_cmd(cpu[2])
+        return_on_enter
     elsif keys_entered == "4"
         menu_navigator('tools')
     elsif keys_entered == "5"
@@ -316,18 +310,25 @@ def admin(keys_entered)
     menu_length = admin.length + 2
     if keys_entered == '1'
         run_ssh_cmd(admin[0])
+        return_on_enter
     elsif keys_entered == '2'
         run_ssh_cmd(madmin[1])
+        return_on_enter
     elsif keys_entered == '3'
         run_ssh_cmd(admin[2])
+        return_on_enter
     elsif keys_entered == '4'
         run_ssh_cmd(admin[3])
+        return_on_enter
     elsif keys_entered == '5'
         run_ssh_cmd(admin[4])
+        return_on_enter
     elsif keys_entered == '6'
         run_ssh_cmd(admin[5])
+        return_on_enter
     elsif keys_entered == '7'
         run_ssh_cmd(admin[6])
+        return_on_enter
     elsif keys_entered == '8'
         menu_navigator('tools')
     elsif keys_entered == '9'
@@ -342,31 +343,40 @@ def misc(keys_entered)
     menu_length = misc.length + 2
     if keys_entered == '1'
         run_ssh_cmd(misc[0])
+        return_on_enter
     elsif keys_entered == '2'
         run_ssh_cmd(misc[1])
+        return_on_enter
     elsif keys_entered == '3'
         run_ssh_cmd(misc[2])
+        return_on_enter
     elsif keys_entered == '4'
         run_ssh_cmd(misc[3])
+        return_on_enter
     elsif keys_entered == '5'
         run_ssh_cmd(misc[4])
+        return_on_enter
     elsif keys_entered == '6'
         run_ssh_cmd(misc[5])
+        return_on_enter
     elsif keys_entered == '7'
         run_ssh_cmd(misc[6])
+        return_on_enter
     elsif keys_entered == '8'
         run_ssh_cmd(misc[7])
+        return_on_enter
     elsif keys_entered == '9'
         run_ssh_cmd(misc[8])
+        return_on_enter
     elsif keys_entered == '10'
         run_ssh_cmd(misc[9])
+        return_on_enter
     elsif keys_entered == '11'
         run_ssh_cmd(misc[10])
+        return_on_enter
     elsif keys_entered == '12'
-        run_ssh_cmd(misc[11])
-    elsif keys_entered == '13'
         menu_navigator('tools')
-    elsif keys_entered == '14'
+    elsif keys_entered == '13'
         menu_navigator('exit')
     else
         bad_choice(menu_length)
@@ -378,12 +388,16 @@ def mem(keys_entered)
     menu_length = memory.length + 2
     if keys_entered == '1'
         run_ssh_cmd(memory[0])
+        return_on_enter
     elsif keys_entered == '2'
         run_ssh_cmd(memory[1])
+        return_on_enter
     elsif keys_entered == '3'
         run_ssh_cmd(memory[2])
+        return_on_enter
     elsif keys_entered == '4'
         run_ssh_cmd(memory[3])
+        return_on_enter
     elsif keys_entered == '5'
         menu_navigator('tools')
     elsif keys_entered == '6'
@@ -489,7 +503,7 @@ def menu_navigator(option)
         $menu_full_name = 'Admin Tools Menu'
     elsif option == "misc" 
         body_text = "What would you like to see information on?"
-        body_choices = ['Displays information about PCI buses and devices', 'Displays more verbose information about PCI buses and devices', 'Displays even more information about PCI buses and devices including device numbers and assigned kernel modules', 'Displays information about SCSI devices','Displays more verbose information about SCSI devices, including ATA numbers', 'Displays information about USB buses and the devices connected to them', 'Displays the raw information from DMI/SMBIOS tables', 'Displays available sensor info (CPU, drive temperatures, system voltages, fan speeds)', 'Analyses system and displays all available sensors and needed modules, requires Perl installed first', 'Displays the Linux kernel version', 'Displays the version of the network driver being used by your network chipset (for eth0)', 'Displays the version of OpenSSL', 'Return to SSH ToolBox Menu','Exit']
+        body_choices = ['Displays information about PCI buses and devices', 'Displays more verbose information about PCI buses and devices', 'Displays even more information about PCI buses and devices including device numbers and assigned kernel modules', 'Displays information about SCSI devices','Displays more verbose information about SCSI devices, including ATA numbers', 'Displays information about USB buses and the devices connected to them', 'Displays the raw information from DMI/SMBIOS tables', 'Displays available sensor info (CPU, drive temperatures, system voltages, fan speeds)', 'Displays the Linux kernel version', 'Displays the version of the network driver being used by your network chipset (for eth0)', 'Displays the version of OpenSSL', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/CPU Misc Menu"
         $current_menu = "misc"
         $menu_full_name = 'Misc Tools Menu'
