@@ -13,7 +13,6 @@ require_relative 'connection_test'
 # require_relative 'SUB_start_menu'
 # require_relative 'SUB_tools_menu'
 
-
 $current_menu = "start"
 $menu_full_name = 'Start'
 $navigator = nil
