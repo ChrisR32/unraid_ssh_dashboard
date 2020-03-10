@@ -26,6 +26,38 @@ $result = "FAIL"
 $connect_test_result = "NOT CONNECTED"
 $key_debug = Array.new
 
+# Runs the ssh command
+# Returns result to user
+# Saves the returned information from server
+# Creates or Adds to: 2 log files in the log directory:
+#     1. Named after the command used, this contains:
+#           - The command used
+#           - The commands output
+#           - The local server and client time
+#           - The account used
+#           - IP address used to access
+#     2. A Master Log named 'ssh_dashboard_master.log'
+#           - The account used
+#           - Client time
+#           - Command used
+# Removes special characters from the command so when naming the log it's not a invalid filename
+
+def run_ssh_cmd(command)
+    local_time = Time.now.to_s
+    log_file_name = "logs/ssh_dashboard_#{command.gsub(/[^0-9A-Za-z]/, '')}.log"
+    Net::SSH.start($ip_address, $user_name, :password => $password) do |ssh|  
+      $result = ssh.exec!command
+      puts $result
+      result_log = "-->> NEW ENTRY created by USER: #{$user_name} via GATEWAY: #{$ip_address} \n-->> SSH-Client executed the following COMMAND: #{command}   \n-->> Local server TIME: " + ssh.exec!("date\necho\n") + $result + "\n-->> END OF ENTRY at SSH-Client Time: #{local_time} \n\n"
+      File.open log_file_name, 'a+' do |f|
+        f.puts(result_log)
+      end
+    end        
+    master_log = "AT: #{local_time} --> USER: #{$user_name} --> INIT_CMD: #{command} --> SEE_LOG: #{log_file_name}"
+      File.open "logs/ssh_dashboard_master.log", 'a+' do |f|
+        f.puts(master_log)
+      end
+  end
 
 def cheat_codes(code)
     if code == 'idkfa'
@@ -61,132 +93,6 @@ def cheat_codes(code)
     elseif code == 'iddqd'
         puts Rainbow("\nGod Mode:\n").indianred.underline
         puts $key_debug
-    end
-end
-
-def network(keys_entered)
-    network = ['lsmod', 'ethtool -i eth0', 'ethtool eth0', 'ifconfig', 'ethtool -S eth0', 'net lookup google.com', 'ping -c5 google.com' ]
-    menu_length = network.length + 2
-    if keys_entered == '1'
-        run_ssh_cmd(network[0])
-    elsif keys_entered == '2'
-        run_ssh_cmd(network[1])
-    elsif keys_entered == '3'
-        run_ssh_cmd(network[2])
-    elsif keys_entered == '4'
-        run_ssh_cmd(network[3])
-    elsif keys_entered == '5'
-        run_ssh_cmd(network[4])
-    elsif keys_entered == '6'
-        run_ssh_cmd(network[5])
-    elsif keys_entered == '7'
-        run_ssh_cmd(network[6])
-    elsif keys_entered == '8'
-        menu_navigator('tools')
-    elsif keys_entered == '9'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end
-end    
-
-def cpu(keys_entered)
-    cpu = ['lscpu', 'cat /proc/cpuinfo', "egrep --color 'lm|vmx|svm' /proc/cpuinfo" ]
-    menu_length = cpu.length + 2
-    if keys_entered == "1"
-        run_ssh_cmd(cpu[0])
-    elsif keys_entered == "2"
-        run_ssh_cmd(cpu[1])
-    elsif keys_entered == "3"
-        run_ssh_cmd(cpu[2])
-    elsif keys_entered == "4"
-        menu_navigator('tools')
-    elsif keys_entered == "5"
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end
-end
-        
-def admin(keys_entered)
-    admin = ['tail -f --lines=99 /var/log/syslog', 'free -l', 'ps -eF', 'ps -eo size,pid,time,args --sort -size', 'testparm -sv', 'w' ]
-    menu_length = admin.length + 2
-    if keys_entered == '1'
-        run_ssh_cmd(admin[0])
-    elsif keys_entered == '2'
-        run_ssh_cmd(madmin[1])
-    elsif keys_entered == '3'
-        run_ssh_cmd(admin[2])
-    elsif keys_entered == '4'
-        run_ssh_cmd(admin[3])
-    elsif keys_entered == '5'
-        run_ssh_cmd(admin[4])
-    elsif keys_entered == '6'
-        run_ssh_cmd(admin[5])
-    elsif keys_entered == '7'
-        run_ssh_cmd(admin[6])
-    elsif keys_entered == '8'
-        menu_navigator('tools')
-    elsif keys_entered == '9'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end
-end
-        
-def misc(keys_entered)
-    misc = ['lspci', 'lspci -vnn', 'lspci -knn', 'lsscsi"', 'lsscsi -vgl', 'lsusb', 'dmidecode', 'sensors', 'sensors-detect', 'ethtool -i eth0', 'openssl version']
-    menu_length = misc.length + 2
-    if keys_entered == '1'
-        run_ssh_cmd(misc[0])
-    elsif keys_entered == '2'
-        run_ssh_cmd(misc[1])
-    elsif keys_entered == '3'
-        run_ssh_cmd(misc[2])
-    elsif keys_entered == '4'
-        run_ssh_cmd(misc[3])
-    elsif keys_entered == '5'
-        run_ssh_cmd(misc[4])
-    elsif keys_entered == '6'
-        run_ssh_cmd(misc[5])
-    elsif keys_entered == '7'
-        run_ssh_cmd(misc[6])
-    elsif keys_entered == '8'
-        run_ssh_cmd(misc[7])
-    elsif keys_entered == '9'
-        run_ssh_cmd(misc[8])
-    elsif keys_entered == '10'
-        run_ssh_cmd(misc[9])
-    elsif keys_entered == '11'
-        run_ssh_cmd(misc[10])
-    elsif keys_entered == '12'
-        run_ssh_cmd(misc[11])
-    elsif keys_entered == '13'
-        menu_navigator('tools')
-    elsif keys_entered == '14'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end
-end
-
-def mem(keys_entered)
-    memory = ['free', 'free -mt', 'cat /proc/meminfo', 'vmstat -m']
-    menu_length = memory.length + 2
-    if keys_entered == '1'
-        run_ssh_cmd(memory[0])
-    elsif keys_entered == '2'
-        run_ssh_cmd(memory[1])
-    elsif keys_entered == '3'
-        run_ssh_cmd(memory[2])
-    elsif keys_entered == '4'
-        run_ssh_cmd(memory[3])
-    elsif keys_entered == '5'
-        menu_navigator('tools')
-    elsif keys_entered == '6'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
     end
 end
 
@@ -362,6 +268,132 @@ def dash_menu(keys_entered)
     end    
 end
 
+def network(keys_entered)
+    network = ['lsmod', 'ethtool -i eth0', 'ethtool eth0', 'ifconfig', 'ethtool -S eth0', 'net lookup google.com', 'ping -c5 google.com' ]
+    menu_length = network.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(network[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(network[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(network[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(network[3])
+    elsif keys_entered == '5'
+        run_ssh_cmd(network[4])
+    elsif keys_entered == '6'
+        run_ssh_cmd(network[5])
+    elsif keys_entered == '7'
+        run_ssh_cmd(network[6])
+    elsif keys_entered == '8'
+        menu_navigator('tools')
+    elsif keys_entered == '9'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end    
+
+def cpu(keys_entered)
+    cpu = ['lscpu', 'cat /proc/cpuinfo', "egrep --color 'lm|vmx|svm' /proc/cpuinfo" ]
+    menu_length = cpu.length + 2
+    if keys_entered == "1"
+        run_ssh_cmd(cpu[0])
+    elsif keys_entered == "2"
+        run_ssh_cmd(cpu[1])
+    elsif keys_entered == "3"
+        run_ssh_cmd(cpu[2])
+    elsif keys_entered == "4"
+        menu_navigator('tools')
+    elsif keys_entered == "5"
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+        
+def admin(keys_entered)
+    admin = ['tail -f --lines=99 /var/log/syslog', 'free -l', 'ps -eF', 'ps -eo size,pid,time,args --sort -size', 'testparm -sv', 'w' ]
+    menu_length = admin.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(admin[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(madmin[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(admin[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(admin[3])
+    elsif keys_entered == '5'
+        run_ssh_cmd(admin[4])
+    elsif keys_entered == '6'
+        run_ssh_cmd(admin[5])
+    elsif keys_entered == '7'
+        run_ssh_cmd(admin[6])
+    elsif keys_entered == '8'
+        menu_navigator('tools')
+    elsif keys_entered == '9'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+        
+def misc(keys_entered)
+    misc = ['lspci', 'lspci -vnn', 'lspci -knn', 'lsscsi"', 'lsscsi -vgl', 'lsusb', 'dmidecode', 'sensors', 'sensors-detect', 'ethtool -i eth0', 'openssl version']
+    menu_length = misc.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(misc[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(misc[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(misc[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(misc[3])
+    elsif keys_entered == '5'
+        run_ssh_cmd(misc[4])
+    elsif keys_entered == '6'
+        run_ssh_cmd(misc[5])
+    elsif keys_entered == '7'
+        run_ssh_cmd(misc[6])
+    elsif keys_entered == '8'
+        run_ssh_cmd(misc[7])
+    elsif keys_entered == '9'
+        run_ssh_cmd(misc[8])
+    elsif keys_entered == '10'
+        run_ssh_cmd(misc[9])
+    elsif keys_entered == '11'
+        run_ssh_cmd(misc[10])
+    elsif keys_entered == '12'
+        run_ssh_cmd(misc[11])
+    elsif keys_entered == '13'
+        menu_navigator('tools')
+    elsif keys_entered == '14'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+
+def mem(keys_entered)
+    memory = ['free', 'free -mt', 'cat /proc/meminfo', 'vmstat -m']
+    menu_length = memory.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(memory[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(memory[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(memory[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(memory[3])
+    elsif keys_entered == '5'
+        menu_navigator('tools')
+    elsif keys_entered == '6'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+
 def realy_exit()
     puts "Did you know that everytime this program connects to your server it saves it in multiple logs:"
     puts "Look in the log directory for the log index named: " + Rainbow("ssh_dashboard_master.log").blue.bright
@@ -432,11 +464,11 @@ def menu_navigator(option)
         footer_text = "Your current location is: /Main Menu/Array tools"
         $current_menu = 'array'
         $menu_full_name = 'UnRaid Array Controls Home Menu'
-    elsif option == "cpu" 
+    elsif option == 'cpu'
         body_text = "What would you like to run?"
         body_choices = ['Summary of CPU info', 'Longer report of all CPUs', 'Check for 64bit and virtualization support', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/CPU Tools Menu"
-        $current_menu = "cpu"
+        $current_menu = 'cpu'
         $menu_full_name = 'CPU Tools Menu'
     elsif option == "network" 
         body_text = "What would you like to see information on?"
@@ -523,6 +555,18 @@ def keys_entered_decrypter(keys_entered)
         array_stop_menu(keys_entered)
     elsif $current_menu == 'array_start'
         array_start_menu(keys_entered)
+    elsif $current_menu == 'cpu'
+        cpu(keys_entered)
+    elsif $current_menu == 'mem'
+        mem(keys_entered)
+    elsif $current_menu == 'network'
+        network(keys_entered)
+    elsif $current_menu == 'hdd'
+        hdd(keys_entered)
+    elsif $current_menu == 'admin'
+        admin(keys_entered)
+    elsif $current_menu == 'misc'
+        misc(keys_entered)
     end
 end
 
@@ -541,10 +585,9 @@ while $current_menu != 'exit' do
     print "Please make a selection: "
     key_input = gets.chomp
     $key_debug.push key_input
-    if key_input == "idkfa" || key_input == "idclip"
+    if key_input == "idkfa" || key_input == "idclip" || key_input == "iddqd"
         cheat_codes(key_input)
     else    
     keys_entered_decrypter(key_input)
     end    
 end
-
