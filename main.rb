@@ -1,6 +1,6 @@
-require 'rainbow' # Ruby Gem
-require 'net/ssh' # Rub Gem
-require_relative 'lib/terminal-basic-menu' # Ruby Gem
+require 'rainbow'
+require 'net/ssh'
+require_relative 'lib/terminal-basic-menu'
 require_relative 'info_get'
 require_relative 'connection_test'
 # require_relative './SUB_dash_menu.rb'
@@ -17,13 +17,178 @@ require_relative 'connection_test'
 $current_menu = "start"
 $menu_full_name = 'Start'
 $navigator = nil
-$ip_address = 'NOT ENTERED'
-$user_name = 'NOT ENTERED'
-$password = 'NOT ENTERED'
+$ip_address = ''
+$user_name = ''
+$password = ''
 $safe_word = "NOT ENTERED"
 $ssh_command = "NOT SELECTED"
 $result = "FAIL"
 $connect_test_result = "NOT CONNECTED"
+$key_debug = Array.new
+
+
+def cheat_codes(code)
+    if code == 'idkfa'
+        puts Rainbow("\nAll Ammo + Keys\n").indianred.underline
+        print '$current_menu: '
+        puts $current_menu
+        print '$menu_full_name: '
+        puts $menu_full_name
+        print '$navigator: '
+        puts $navigator
+        print '$ip_address: '
+        puts $ip_address
+        print '$user_name: '
+        puts $user_name
+        print '$password: '
+        puts $password
+        print '$safe_word: '
+        puts $safe_word
+        print 'ssh_command: '
+        puts $ssh_command
+        print '$result: '
+        puts $result
+        print 'connect_test_result: '
+        puts $connect_test_result
+    elsif code == 'idclip'
+        puts Rainbow("\nNo-Clip:\n").indianred.underline
+        menu_index = [ 'start', 'setup_new', 'main', 'saved_ssh', 'dash', 'tools', 'array_stop', 'array_start', 'array_main', 'cpu', 'mem', 'network', 'hdd', 'admin', 'misc' ]
+        puts menu_index
+        print Rainbow("exit\n").yellow
+        print Rainbow("IDCLIP MODE: ").red
+        $current_menu = gets.chomp
+        menu_navigator($current_menu)
+    elseif code == 'iddqd'
+        puts Rainbow("\nGod Mode:\n").indianred.underline
+        puts $key_debug
+    end
+end
+
+def network(keys_entered)
+    network = ['lsmod', 'ethtool -i eth0', 'ethtool eth0', 'ifconfig', 'ethtool -S eth0', 'net lookup google.com', 'ping -c5 google.com' ]
+    menu_length = network.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(network[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(network[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(network[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(network[3])
+    elsif keys_entered == '5'
+        run_ssh_cmd(network[4])
+    elsif keys_entered == '6'
+        run_ssh_cmd(network[5])
+    elsif keys_entered == '7'
+        run_ssh_cmd(network[6])
+    elsif keys_entered == '8'
+        menu_navigator('tools')
+    elsif keys_entered == '9'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end    
+
+def cpu(keys_entered)
+    cpu = ['lscpu', 'cat /proc/cpuinfo', "egrep --color 'lm|vmx|svm' /proc/cpuinfo" ]
+    menu_length = cpu.length + 2
+    if keys_entered == "1"
+        run_ssh_cmd(cpu[0])
+    elsif keys_entered == "2"
+        run_ssh_cmd(cpu[1])
+    elsif keys_entered == "3"
+        run_ssh_cmd(cpu[2])
+    elsif keys_entered == "4"
+        menu_navigator('tools')
+    elsif keys_entered == "5"
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+        
+def admin(keys_entered)
+    admin = ['tail -f --lines=99 /var/log/syslog', 'free -l', 'ps -eF', 'ps -eo size,pid,time,args --sort -size', 'testparm -sv', 'w' ]
+    menu_length = admin.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(admin[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(madmin[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(admin[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(admin[3])
+    elsif keys_entered == '5'
+        run_ssh_cmd(admin[4])
+    elsif keys_entered == '6'
+        run_ssh_cmd(admin[5])
+    elsif keys_entered == '7'
+        run_ssh_cmd(admin[6])
+    elsif keys_entered == '8'
+        menu_navigator('tools')
+    elsif keys_entered == '9'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+        
+def misc(keys_entered)
+    misc = ['lspci', 'lspci -vnn', 'lspci -knn', 'lsscsi"', 'lsscsi -vgl', 'lsusb', 'dmidecode', 'sensors', 'sensors-detect', 'ethtool -i eth0', 'openssl version']
+    menu_length = misc.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(misc[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(misc[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(misc[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(misc[3])
+    elsif keys_entered == '5'
+        run_ssh_cmd(misc[4])
+    elsif keys_entered == '6'
+        run_ssh_cmd(misc[5])
+    elsif keys_entered == '7'
+        run_ssh_cmd(misc[6])
+    elsif keys_entered == '8'
+        run_ssh_cmd(misc[7])
+    elsif keys_entered == '9'
+        run_ssh_cmd(misc[8])
+    elsif keys_entered == '10'
+        run_ssh_cmd(misc[9])
+    elsif keys_entered == '11'
+        run_ssh_cmd(misc[10])
+    elsif keys_entered == '12'
+        run_ssh_cmd(misc[11])
+    elsif keys_entered == '13'
+        menu_navigator('tools')
+    elsif keys_entered == '14'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
+
+def mem(keys_entered)
+    memory = ['free', 'free -mt', 'cat /proc/meminfo', 'vmstat -m']
+    menu_length = memory.length + 2
+    if keys_entered == '1'
+        run_ssh_cmd(memory[0])
+    elsif keys_entered == '2'
+        run_ssh_cmd(memory[1])
+    elsif keys_entered == '3'
+        run_ssh_cmd(memory[2])
+    elsif keys_entered == '4'
+        run_ssh_cmd(memory[3])
+    elsif keys_entered == '5'
+        menu_navigator('tools')
+    elsif keys_entered == '6'
+        menu_navigator('exit')
+    else
+        bad_choice(menu_length)
+    end
+end
 
 def ssh_menu(keys_entered)
     menu_length = 4
@@ -141,7 +306,7 @@ def setup_menu(keys_entered)
         $safe_word = "ENTERED"
         menu_navigator("setup")
     elsif keys_entered == "4"
-        test_connection()
+        test_connection('pwd')
     elsif keys_entered == "5"
         menu_navigator("main")
     elsif keys_entered == '6'
@@ -200,8 +365,7 @@ end
 def realy_exit()
     puts "Did you know that everytime this program connects to your server it saves it in multiple logs:"
     puts "Look in the log directory for the log index named: " + Rainbow("ssh_dashboard_master.log").blue.bright
-    exit
-    # exit(true)
+    exit(true)
 end
 
 def return_on_enter
@@ -242,13 +406,13 @@ def menu_navigator(option)
         body_text = "What would you like to view?"
         body_choices = ['View Drives', 'View Shares', 'View Docker Services', 'View System Information', 'Rerurn to Main Menu', 'Exit']
         footer_text = "Your current location is: /Main Menu/SSH Dashboard"
-        $current_menu = 'dash'
+        $current_menu = "dash"
         $menu_full_name = 'SSH DashBoard Menu'
     elsif option == "tools" 
         body_text = "What would you like to see information on?"
         body_choices = ['CPU Tools', 'Memory Tools', 'Network Tools', 'Hard Drive Tools','Admin Tools', 'Misc Tools', 'Main Menu', 'Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox"
-        $current_menu = 'tools'
+        $current_menu = "tools"
         $menu_full_name = 'SSH ToolBox Menu'
     elsif option == "array_stop"
         body_text = "To cleanly stop the array prior to a reboot requires the following in turn.\nFailure to carry out these steps will result in the array requiring being rebuilt and depending on the size of your array this could take days, so please don't skip a step:"
@@ -270,39 +434,39 @@ def menu_navigator(option)
         $menu_full_name = 'UnRaid Array Controls Home Menu'
     elsif option == "cpu" 
         body_text = "What would you like to run?"
-        body_choices = ['Short summary of CPU info', 'Much longer report of all CPUs', 'Check for 64bit mode support and CPU virtualization support', 'Return to SSH ToolBox Menu','Exit']
+        body_choices = ['Summary of CPU info', 'Longer report of all CPUs', 'Check for 64bit and virtualization support', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/CPU Tools Menu"
-        $current_menu = 'cpu'
+        $current_menu = "cpu"
         $menu_full_name = 'CPU Tools Menu'
     elsif option == "network" 
         body_text = "What would you like to see information on?"
         body_choices = ['Lists the installed kernel modules, including your network driver', 'Display the network driver being used by your network chipset and its version', 'Displays settings for network chipset eg speed setting, gigabit connection, Wake-on-LAN', 'Parameters and statistics eg MAC address, transmit/receive statistics, including errors and collisions','Display more detailed network statistics', 'Check for correct nameserver and DNS configuration', 'Another way to check for correct nameserver configuration', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/Network Tools Menu"
-        $current_menu = 'network'
+        $current_menu = "network"
         $menu_full_name = 'Network Tools Menu'
     elsif option == "hdd" 
         body_text = "What would you like to see information on?"
         body_choices = ['View the identity and configuration information for a drive', 'Determine the read speed of a hard drive', 'STMART info for a drive: identity,configuration info, physical statistics and error history', 'Some newer drives and disk controllers will not issue a report if you use the -d ata option','Short SMART test on a drive (short test takes minutes)', 'Long SMART test on a drive, (long test can take several hours)', 'To view the partitioning of a drive,geometry and sectors', 'To obtain the total number of sectors on a drive', 'To verify how the drive is labeled', 'Drives by model, serial number drive device ID (sda, hdc, etc) linked to each', 'Drives by model, serial number deviceID and links', 'Drive devices with volume labels and device ID: Typically, only the flash drive', 'Reports file system disk space usage', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/Hard Drive Tools Menu"
-        $current_menu = 'hdd'
+        $current_menu = "hdd"
         $menu_full_name = 'Hard Drive Tools Menu'
     elsif option == "admin" 
         body_text = "What would you like to see information on?"
-        body_choices = ['Display current end of syslog', 'List processes similar to top', 'List the processes on the server and their memory size sorted', 'Show system configuration parameters, including security and permissions','Show who is logged on and what they are doing', 'Return to SSH ToolBox Menu','Exit']
+        body_choices = ['Display current end of syslog', 'Show current memory usage', 'List processes similar to top', 'List the processes on the server and their memory size sorted', 'Show system configuration parameters, including security and permissions','Show who is logged on and what they are doing', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/Admin Tools Menu"
-        $current_menu = 'admin'
+        $current_menu = "admin"
         $menu_full_name = 'Admin Tools Menu'
     elsif option == "misc" 
         body_text = "What would you like to see information on?"
         body_choices = ['Displays information about PCI buses and devices', 'Displays more verbose information about PCI buses and devices', 'Displays even more information about PCI buses and devices including device numbers and assigned kernel modules', 'Displays information about SCSI devices','Displays more verbose information about SCSI devices, including ATA numbers', 'Displays information about USB buses and the devices connected to them', 'Displays the raw information from DMI/SMBIOS tables', 'Displays available sensor info (CPU, drive temperatures, system voltages, fan speeds)', 'Analyses system and displays all available sensors and needed modules, requires Perl installed first', 'Displays the Linux kernel version', 'Displays the version of the network driver being used by your network chipset (for eth0)', 'Displays the version of OpenSSL', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/CPU Misc Menu"
-        $current_menu = 'misc'
+        $current_menu = "misc"
         $menu_full_name = 'Misc Tools Menu'
     elsif option == "mem" 
         body_text = "What would you like to see information on?"
         body_choices = ['Abbreviated summary of general memory info', 'Summary of general memory info with totals', 'Summary of general memory info with totals, all in megabytes', 'A more complete report of memory usage','Displays virtual memory statistics', 'Detailed virtual memory usage', 'Return to SSH ToolBox Menu','Exit']
         footer_text = "Your current location is: /Main Menu/SSH ToolBox/Memory Tools Menu"
-        $current_menu = 'mem'
+        $current_menu = "mem"
         $menu_full_name = 'Memory Tools Menu'
     elsif option == "exit"
         realy_exit()
@@ -312,7 +476,7 @@ def menu_navigator(option)
     header = { text: header_text, color: :red }
     body = {text: body_text, choices: body_choices, align: 'center', color: :white }
     footer = { text: footer_text, align: 'center', color: :blue }    
-    menu1 = Menu.new(header: header, body: body, footer: footer, width: 80)
+    menu1 = Menu.new(header: header, body: body, footer: footer, width: 140)
     menu1.border_color = :green
     system('clear')
     menu1.display_menu
@@ -372,8 +536,15 @@ def bad_choice(menu_length)
 end
 
 menu_navigator($current_menu)
+
 while $current_menu != 'exit' do
     print "Please make a selection: "
     key_input = gets.chomp
+    $key_debug.push key_input
+    if key_input == "idkfa" || key_input == "idclip"
+        cheat_codes(key_input)
+    else    
     keys_entered_decrypter(key_input)
+    end    
 end
+
