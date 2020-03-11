@@ -20,12 +20,12 @@ $ip_address = ''
 $user_name = ''
 $password = ''
 $safe_word = "NOT ENTERED"
-$ssh_command = "NOT SELECTED"
-$result = "FAIL"
-$connect_test_result = "NOT CONNECTED"
-$key_debug = Array.new
-$temp_hdd = '' # used in hard drive tools
-$temp_file_hdd = '' # as above both needed 
+$safe_word = "NOT ENTERED" # to hide password on setup screen
+$ssh_command = "NOT SELECTED" # not used?
+$result = "FAIL" # not used ?
+$connect_test_result = "NOT CONNECTED" # shows if test connect worked
+$temp_hdd = 'logs/temp1.log' # used in hard drive tools
+$temp_file_hdd = 'logs/temp2.log' # as above both needed 
 
 # Runs the ssh command
 # Returns result to user
@@ -51,42 +51,14 @@ def run_ssh_cmd(command) #gem but with alot of extra stuff going on (see above),
       puts $result
       result_log = "-->> NEW ENTRY created by USER: #{$user_name} via GATEWAY: #{$ip_address} \n-->> SSH-Client executed the following COMMAND: #{command}   \n-->> Local server TIME: " + ssh.exec!("date\necho\n") + $result + "\n-->> END OF ENTRY at SSH-Client Time: #{local_time} \n\n"
       File.open log_file_name, 'a+' do |f|
-        f.puts(result_log)
+         f.puts(result_log)
       end
+
     end        
     master_log = "AT: #{local_time} --> USER: #{$user_name} --> INIT_CMD: #{command} --> SEE_LOG: #{log_file_name}"
       File.open "logs/ssh_dashboard_master.log", 'a+' do |f|
         f.puts(master_log)
       end
-end
-
-def get_hdd_names # gets hard drives names needed for hard drive tools interface / will be made to handle onther things  too
-
-    def get_temp_list(command)
-      $temp_file_hdd = 'tmp/hdd.log'
-      Net::SSH.start($ip_address, $user_name, password: $password) do |ssh|
-        result = ssh.exec! command
-        File.open $temp_file_hdd, 'w' do |f|
-          f.puts(result)
-        end
-      end
-    end
-    
-    get_temp_list('lsscsi')
-    
-    File.open('tmp/hdd_t.log', 'w') { |file| file.truncate(0) } # Makes sure temp is emplty before writting to as we need to use add to file (a+) further down because we're printing line by line, else if we set that to write (w) all we get is the last line
-    
-    text = File.open('tmp/hdd.log').read
-    text.gsub!(/\r\n?/, "\n")
-    text.each_line do |line|
-      File.open 'tmp/hdd_t.log', 'a+' do |f| # prints it 1 line at a time, adding each to the next line
-        if line[59] == 'd' # makes sure i get the sd* files not the cdrom
-          $temp_hdd = line[58..60] # prints the letters at that
-          f.puts($temp_hdd) # finaly saves it
-        end
-      end
-    end
-    
 end
 
 def cheat_codes(code) # for debugging prints what the $ are set too, lets you go to any menu
@@ -121,6 +93,79 @@ def cheat_codes(code) # for debugging prints what the $ are set too, lets you go
         $current_menu = gets.chomp
         menu_navigator($current_menu)
     end
+end
+
+def hdd(keys_entered)
+    hdd_info = ["hdparm  -I  /dev/#{$hdd_choice}", "hdparm  -tT  /dev/#{$hdd_choice}", "smartctl  -a  -d  ata  /dev/#{$hdd_choice}", "smartctl -a /dev/#{$hdd_choice}", "smartctl  -d  ata  -tshort  /dev/#{$hdd_choice}", "smartctl  -d  ata  -tlong  /dev/#{$hdd_choice}", "fdisk  -l  -u  /dev/#{$hdd_choice}", "blockdev  --getsz  /dev/#{$hdd_choice}", "vol_id  /dev/#{$hdd_choice}1", "ls  -l  /dev/disk/by-id", "ls  -l  /dev/disk/by-id/[au]*  |  grep  -v  part1 ", "ls  -l  /dev/disk/by-label", "df"]
+        menu_length = hdd_info.length + 2
+        if keys_entered == '1'
+            get_desired_drive(hdd_info[0])
+            return_on_enter
+        elsif keys_entered == '2'
+            get_desired_drive(hdd_info[1])
+            return_on_enter
+        elsif keys_entered == '3'
+            get_desired_drive(hdd_info[2])
+            return_on_enter
+        elsif keys_entered == '4'
+            get_desired_drive(hdd_info[3])
+            return_on_enter
+        elsif keys_entered == '5'
+            rget_desired_drive(hdd_info[4])
+            return_on_enter
+        elsif keys_entered == '6'
+            get_desired_drive(hdd_info[5])
+            return_on_enter
+        elsif keys_entered == '7'
+            get_desired_drive(hdd_info[6])
+            return_on_enter
+        elsif keys_entered == '8'
+            rget_desired_drive(hdd_info[7])
+            return_on_enter
+        elsif keys_entered == '9'
+            get_desired_drive(hdd_info[8])
+            return_on_enter
+        elsif keys_entered == '10'
+            run_ssh_cmd(hdd_info[9])
+            return_on_enter
+        elsif keys_entered == '11'
+            run_ssh_cmd(hdd_info[10])
+            return_on_enter
+        elsif keys_entered == '12'
+            run_ssh_cmd(hdd_info[11])
+            return_on_enter
+        elsif keys_entered == '13'
+            run_ssh_cmd(hdd_info[12])
+            return_on_enter
+        elsif keys_entered == '14'
+            menu_navigator('tools')
+        elsif keys_entered == '15'
+            menu_navigator('exit')
+        else
+            bad_choice(menu_length)
+        end
+end
+    
+def get_desired_drive(command)
+    answer = 'WAITING...'
+    print "The command you requested needs to be run against a certain drive.\nHere is a list of your drives\n"
+        Net::SSH.start($ip_address, $user_name, password: $password) do |ssh|
+          result = ssh.exec! 'lsscsi'
+            # puts result
+            File.open $temp_file_hdd, 'w' do |f|
+                f.puts(result)
+            end
+            lines = IO.readlines($temp_file_hdd).map do |line|
+                if line[58..59] = 'sd' # gets rid of most unwanted drives
+                    puts  line[0..57] + Rainbow(line[58..60]).purple
+                end
+          end
+          end
+    puts "The drive names we're after are listed above in " + Rainbow("pink").purple.underline
+    puts "They 'sd' and end in a leter eg: 'sda', 'sdb' and 'sdc' etc . . .\nIf you see one with Udisk in its name, that is the UnRaid Boot USB drive\nIf you enter all 3 letters, of the drive you want to check\ni'll procced by running the test against that drive"
+    print "Please enter your selection (eg. 'sda'): "
+    $hdd_choice = gets.chomp
+    run_ssh_cmd(command)
 end
 
 def ssh_menu(keys_entered) # ssh menu runs the option, gets selection from the decipher
@@ -560,7 +605,7 @@ def menu_navigator(option) # this has all the menu lists, part of the Gem: termi
     elsif option == "exit"
         realy_exit()
     end
-    header_text = 'UnRaid SSH Dashboard v0.3'
+    header_text = 'UnRaid SSH Dashboard v0.51'
     # ADD ONCE CHANGED TO NEW SEARCH::   footer_text = "Your current location is /#{$current_menu}/#{menu_return_to_previous[menu_full_name]}/"
     header = { text: header_text, color: :red }
     body = {text: body_text, choices: body_choices, align: 'center', color: :white }
@@ -641,7 +686,6 @@ menu_navigator($current_menu) # Starts the whole thing running
 while $current_menu != 'exit' do # Keeps program from closing after selecting a option
     print "Please make a selection: "
     key_input = gets.chomp
-    $key_debug.push key_input
     if key_input == "idkfa" || key_input == "idclip"
         cheat_codes(key_input)
     else    
