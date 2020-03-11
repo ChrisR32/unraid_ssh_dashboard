@@ -24,8 +24,26 @@ $ssh_command = "NOT SELECTED"
 $result = "FAIL"
 $connect_test_result = "NOT CONNECTED"
 $key_debug = Array.new
+$temp_hdd = '' # used in hard drive tools
+$temp_file_hdd = '' # as above both needed 
 
-def run_ssh_cmd(command)
+# Runs the ssh command
+# Returns result to user
+# Saves the returned information from server
+# Creates or Adds to: 2 log files in the log directory:
+#     1. Named after the command used, this contains:
+#           - The command used
+#           - The commands output
+#           - The local server and client time
+#           - The account used
+#           - IP address used to access
+#     2. A Master Log named 'ssh_dashboard_master.log'
+#           - The account used
+#           - Client time
+#           - Command used
+# Removes special characters from the command so when naming the log it's not a invalid filename
+
+def run_ssh_cmd(command) #gem but with alot of extra stuff going on (see above), ln 45, 48, 49, 55, 60 are the closest to original gem
     local_time = Time.now.to_s
     log_file_name = "logs/ssh_dashboard_#{command.gsub(/[^0-9A-Za-z]/, '')}.log"
     Net::SSH.start($ip_address, $user_name, :password => $password) do |ssh|  
@@ -40,9 +58,38 @@ def run_ssh_cmd(command)
       File.open "logs/ssh_dashboard_master.log", 'a+' do |f|
         f.puts(master_log)
       end
-  end
+end
 
-def cheat_codes(code)
+def get_hdd_names # gets hard drives names needed for hard drive tools interface / will be made to handle onther things  too
+
+    def get_temp_list(command)
+      $temp_file_hdd = 'tmp/hdd.log'
+      Net::SSH.start($ip_address, $user_name, password: $password) do |ssh|
+        result = ssh.exec! command
+        File.open $temp_file_hdd, 'w' do |f|
+          f.puts(result)
+        end
+      end
+    end
+    
+    get_temp_list('lsscsi')
+    
+    File.open('tmp/hdd_t.log', 'w') { |file| file.truncate(0) } # Makes sure temp is emplty before writting to as we need to use add to file (a+) further down because we're printing line by line, else if we set that to write (w) all we get is the last line
+    
+    text = File.open('tmp/hdd.log').read
+    text.gsub!(/\r\n?/, "\n")
+    text.each_line do |line|
+      File.open 'tmp/hdd_t.log', 'a+' do |f| # prints it 1 line at a time, adding each to the next line
+        if line[59] == 'd' # makes sure i get the sd* files not the cdrom
+          $temp_hdd = line[58..60] # prints the letters at that
+          f.puts($temp_hdd) # finaly saves it
+        end
+      end
+    end
+    
+end
+
+def cheat_codes(code) # for debugging prints what the $ are set too, lets you go to any menu
     if code == 'idkfa'
         puts Rainbow("\nAll Ammo + Keys\n").indianred.underline
         print '$current_menu: '
@@ -73,13 +120,10 @@ def cheat_codes(code)
         print Rainbow("IDCLIP MODE: ").red
         $current_menu = gets.chomp
         menu_navigator($current_menu)
-    elseif code == 'iddqd'
-        puts Rainbow("\nGod Mode:\n").indianred.underline
-        puts $key_debug
     end
 end
 
-def ssh_menu(keys_entered)
+def ssh_menu(keys_entered) # ssh menu runs the option, gets selection from the decipher
     menu_length = 4
     if keys_entered == '1'
         puts 'NOT SETUP YET PRESSED 1'
@@ -94,7 +138,7 @@ def ssh_menu(keys_entered)
     end  
 end
 
-def start_menu(keys_entered)
+def start_menu(keys_entered) # start menu runs the option, gets selection from the decipher
     menu_length = 2
     if keys_entered == "1"
         menu_navigator("setup")
@@ -105,7 +149,7 @@ def start_menu(keys_entered)
     end    
 end
 
-def array_menu(keys_entered)
+def array_menu(keys_entered) # array main menu runs the option, gets selection from the decipher
     menu_length = 6
     if keys_entered == '1'
         menu_navigator('array_start')
@@ -124,7 +168,7 @@ def array_menu(keys_entered)
     end
 end
 
-def array_start_menu(keys_entered)
+def array_start_menu(keys_entered) # array start menu runs the option, gets selection from the decipher
     menu_length = 5
     if keys_entered == '1'
         puts 'NOT SETUP YET PRESSED 1'
@@ -141,7 +185,7 @@ def array_start_menu(keys_entered)
     end
 end
 
-def array_stop_menu(keys_entered)
+def array_stop_menu(keys_entered) # array stop menu runs the option, gets selection from the decipher
     menu_length = 7
     if keys_entered == '1'
         puts 'NOT SETUP YET PRESSED 1'
@@ -162,7 +206,7 @@ def array_stop_menu(keys_entered)
     end 
 end
 
-def main_menu(keys_entered)
+def main_menu(keys_entered) # main menu runs the option, gets selection from the decipher
     menu_length = 5
     if keys_entered == "1"
         menu_navigator("setup")
@@ -179,7 +223,7 @@ def main_menu(keys_entered)
     end
 end
 
-def setup_menu(keys_entered)
+def setup_menu(keys_entered) # setup menu runs the option, gets selection from the decipher
     menu_length = 6
     if keys_entered == "1"
         print "Please enter your UnRaid servers IP address: "
@@ -205,7 +249,7 @@ def setup_menu(keys_entered)
     end
 end
 
-def tools_menu(keys_entered)
+def tools_menu(keys_entered) # toolbox menu runs the option, gets selection from the decipher
     menu_length = 8
     if keys_entered == '1'
         menu_navigator("cpu")
@@ -228,7 +272,7 @@ def tools_menu(keys_entered)
     end
 end
 
-def dash_menu(keys_entered)
+def dash_menu(keys_entered) # dashboard menu runs the option, gets selection from the decipher
     dash = ["df", "cat /etc/samba/smb-shares.conf", "docker ps"]
     menu_length = dash.length + 3
     if keys_entered == '1'
@@ -251,7 +295,7 @@ def dash_menu(keys_entered)
     end    
 end
 
-def network(keys_entered)
+def network(keys_entered) # toolbox network menu runs the option, gets selection from the decipher
     network = ['lsmod', 'ethtool -i eth0', 'ethtool eth0', 'ifconfig', 'ethtool -S eth0', 'net lookup google.com', 'ping -c5 google.com' ]
     menu_length = network.length + 2
     if keys_entered == '1'
@@ -284,7 +328,7 @@ def network(keys_entered)
     end
 end    
 
-def cpu(keys_entered)
+def cpu(keys_entered) # toolbox cpu menu runs the option, gets selection from the decipher
     cpu = ['lscpu', 'cat /proc/cpuinfo', "egrep --color 'lm|vmx|svm' /proc/cpuinfo" ]
     menu_length = cpu.length + 2
     if keys_entered == "1"
@@ -305,7 +349,7 @@ def cpu(keys_entered)
     end
 end
         
-def admin(keys_entered)
+def admin(keys_entered) # toolbox admin menu runs the option, gets selection from the decipher
     admin = ['tail -f --lines=99 /var/log/syslog', 'free -l', 'ps -eF', 'ps -eo size,pid,time,args --sort -size', 'testparm -sv', 'w' ]
     menu_length = admin.length + 2
     if keys_entered == '1'
@@ -338,7 +382,7 @@ def admin(keys_entered)
     end
 end
         
-def misc(keys_entered)
+def misc(keys_entered) # toolbox misc menu runs the option, gets selection from the decipher
     misc = ['lspci', 'lspci -vnn', 'lspci -knn', 'lsscsi"', 'lsscsi -vgl', 'lsusb', 'dmidecode', 'sensors', 'sensors-detect', 'ethtool -i eth0', 'openssl version']
     menu_length = misc.length + 2
     if keys_entered == '1'
@@ -383,7 +427,7 @@ def misc(keys_entered)
     end
 end
 
-def mem(keys_entered)
+def mem(keys_entered) # toolbox memory menu runs the option, gets selection from the decipher
     memory = ['free', 'free -mt', 'cat /proc/meminfo', 'vmstat -m']
     menu_length = memory.length + 2
     if keys_entered == '1'
@@ -407,13 +451,13 @@ def mem(keys_entered)
     end
 end
 
-def realy_exit()
+def realy_exit() # exit command
     puts "Did you know that everytime this program connects to your server it saves it in multiple logs:"
     puts "Look in the log directory for the log index named: " + Rainbow("ssh_dashboard_master.log").blue.bright
     exit(true)
 end
 
-def return_on_enter
+def return_on_enter # this makes the promt wait after running a terminal command until pressing enter, so the user can review the info
     return_after_connection = 'WAITING...'
     print "Press ENTER key to return to #{$menu_full_name}"
     return_after_connection = gets.chomp
@@ -422,7 +466,7 @@ def return_on_enter
     end
 end
 
-def menu_navigator(option)
+def menu_navigator(option) # this has all the menu lists, part of the Gem: terminal-basic-menu
     if option == 'start'
         body_text = "Welcome, to get started we first need to setup a connection, to do that you'll need the following information handy:\n\n- Your servers IP address;\n- Your username; and\n- Your password"
         body_choices = ['Continue', 'Exit']
@@ -516,18 +560,18 @@ def menu_navigator(option)
     elsif option == "exit"
         realy_exit()
     end
-    header_text = 'UnRaid SSH Dashboard v0.2'
+    header_text = 'UnRaid SSH Dashboard v0.3'
     # ADD ONCE CHANGED TO NEW SEARCH::   footer_text = "Your current location is /#{$current_menu}/#{menu_return_to_previous[menu_full_name]}/"
     header = { text: header_text, color: :red }
     body = {text: body_text, choices: body_choices, align: 'center', color: :white }
     footer = { text: footer_text, align: 'center', color: :blue }    
-    menu1 = Menu.new(header: header, body: body, footer: footer, width: 140)
+    menu1 = Menu.new(header: header, body: body, footer: footer, width: 100)
     menu1.border_color = :green
     system('clear')
     menu1.display_menu
 end
 
-def dashboard_print
+def dashboard_print # prints the dashboard overview screen
     print " > > > "
     puts Rainbow("System Information:\n").blue.underline
     run_ssh_cmd("uname -a")
@@ -549,7 +593,7 @@ def dashboard_print
     return_on_enter
 end
 
-def keys_entered_decrypter(keys_entered)
+def keys_entered_decrypter(keys_entered) # sends the keys pressed to the right menu
     if $current_menu == "main"
         main_menu(keys_entered)
     elsif $current_menu == "start"
@@ -583,7 +627,7 @@ def keys_entered_decrypter(keys_entered)
     end
 end
 
-def bad_choice(menu_length)
+def bad_choice(menu_length) # To respond to unknown entries
     wrong_selection = 'INCORRECT...'
     print "I didn't recognise that selection, please select a number between 1 and #{menu_length}\nPress the ENTER key to return to #{$menu_full_name} and try again . . . ."
     wrong_selection = gets.chomp
@@ -592,13 +636,13 @@ def bad_choice(menu_length)
     end
 end
 
-menu_navigator($current_menu)
+menu_navigator($current_menu) # Starts the whole thing running
 
-while $current_menu != 'exit' do
+while $current_menu != 'exit' do # Keeps program from closing after selecting a option
     print "Please make a selection: "
     key_input = gets.chomp
     $key_debug.push key_input
-    if key_input == "idkfa" || key_input == "idclip" || key_input == "iddqd"
+    if key_input == "idkfa" || key_input == "idclip"
         cheat_codes(key_input)
     else    
     keys_entered_decrypter(key_input)
