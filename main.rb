@@ -1,33 +1,23 @@
-require 'rainbow'
-require 'net/ssh'
-require_relative 'lib/terminal-basic-menu'
-require_relative 'info_get'
+require 'rainbow' # gem
+require 'net/ssh' # gem
+require 'tty/pie' # gem
+require_relative 'lib/terminal-basic-menu' # gem
 require_relative 'connection_test'
-# require_relative './SUB_dash_menu.rb'
-# require_relative 'SUB_array_menu'
-# require_relative 'SUB_array_start_menu'
-# require_relative 'SUB_array_stop_menu'
-# require_relative 'SUB_main_menu'
-# require_relative 'SUB_setup_menu'
-# require_relative 'SUB_ssh_menu'
-# require_relative 'SUB_start_menu'
-# require_relative 'SUB_tools_menu'
 
-$current_menu = "start"
-$menu_full_name = 'Start'
+$current_menu = "start" # stores current menu so LIST DEFS know what to do
+$menu_full_name = 'Start' # Full menu name, for promts to retup
 $navigator = nil
-$ip_address = ''
-$user_name = ''
-$password = ''
-$safe_word = "NOT ENTERED"
+$ip_address = 'NOT ENTERED' # the current ipadress
+$user_name = 'NOT ENTERED' # the current user name
+$password = '' # the current password
 $safe_word = "NOT ENTERED" # to hide password on setup screen
-$ssh_command = "NOT SELECTED" # not used?
-$result = "FAIL" # not used ?
+$ssh_command = "NOT SELECTED" # not used currently
+$result = "FAIL" # not used currently
 $connect_test_result = "NOT CONNECTED" # shows if test connect worked
 $temp_hdd = 'logs/temp1.log' # used in hard drive tools
 $temp_file_hdd = 'logs/temp2.log' # as above both needed 
 
-# Runs the ssh command
+# Runs the ssh command (BELLOW)
 # Returns result to user
 # Saves the returned information from server
 # Creates or Adds to: 2 log files in the log directory:
@@ -61,7 +51,7 @@ def run_ssh_cmd(command) #gem but with alot of extra stuff going on (see above),
       end
 end
 
-def cheat_codes(code) # for debugging prints what the $ are set too, lets you go to any menu
+def cheat_codes(code) # for debugging prints what the $ are set too, lets you go to any menu (but the menu is then buggy as it never got the right variables)
     if code == 'idkfa'
         puts Rainbow("\nAll Ammo + Keys\n").indianred.underline
         print '$current_menu: '
@@ -95,7 +85,7 @@ def cheat_codes(code) # for debugging prints what the $ are set too, lets you go
     end
 end
 
-def hdd(keys_entered)
+def hdd(keys_entered) # HDD TOOLS MENU
     hdd_info = ["hdparm  -I  /dev/#{$hdd_choice}", "hdparm  -tT  /dev/#{$hdd_choice}", "smartctl  -a  -d  ata  /dev/#{$hdd_choice}", "smartctl -a /dev/#{$hdd_choice}", "smartctl  -d  ata  -tshort  /dev/#{$hdd_choice}", "smartctl  -d  ata  -tlong  /dev/#{$hdd_choice}", "fdisk  -l  -u  /dev/#{$hdd_choice}", "blockdev  --getsz  /dev/#{$hdd_choice}", "vol_id  /dev/#{$hdd_choice}1", "ls  -l  /dev/disk/by-id", "ls  -l  /dev/disk/by-id/[au]*  |  grep  -v  part1 ", "ls  -l  /dev/disk/by-label", "df"]
         menu_length = hdd_info.length + 2
         if keys_entered == '1'
@@ -146,7 +136,7 @@ def hdd(keys_entered)
         end
 end
     
-def get_desired_drive(command)
+def get_desired_drive(command) # Asks user to pick whitch drive they want to scan with the hdd tools
     answer = 'WAITING...'
     print "The command you requested needs to be run against a certain drive.\nHere is a list of your drives\n"
         Net::SSH.start($ip_address, $user_name, password: $password) do |ssh|
@@ -157,30 +147,15 @@ def get_desired_drive(command)
             end
             lines = IO.readlines($temp_file_hdd).map do |line|
                 if line[58..59] = 'sd' # gets rid of most unwanted drives
-                    puts  line[0..57] + Rainbow(line[58..60]).purple
+                    puts  line[0..57] + Rainbow(line[58..60]).purple # highlights drives to make it even more user friendly
                 end
           end
           end
-    puts "The drive names we're after are listed above in " + Rainbow("pink").purple.underline
+    puts "The drive names we're after are listed above in " + Rainbow("pink").purple.underline # explains whats going on
     puts "They 'sd' and end in a leter eg: 'sda', 'sdb' and 'sdc' etc . . .\nIf you see one with Udisk in its name, that is the UnRaid Boot USB drive\nIf you enter all 3 letters, of the drive you want to check\ni'll procced by running the test against that drive"
     print "Please enter your selection (eg. 'sda'): "
     $hdd_choice = gets.chomp
     run_ssh_cmd(command)
-end
-
-def ssh_menu(keys_entered) # ssh menu runs the option, gets selection from the decipher
-    menu_length = 4
-    if keys_entered == '1'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '2'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '3'
-        menu_navigator('main')
-    elsif keys_entered == '4'
-        menu_navigator('exit')
-    else
-    bad_choice(menu_length)
-    end  
 end
 
 def start_menu(keys_entered) # start menu runs the option, gets selection from the decipher
@@ -194,65 +169,8 @@ def start_menu(keys_entered) # start menu runs the option, gets selection from t
     end    
 end
 
-def array_menu(keys_entered) # array main menu runs the option, gets selection from the decipher
-    menu_length = 6
-    if keys_entered == '1'
-        menu_navigator('array_start')
-    elsif keys_entered == '2'
-        menu_navigator('array_stop')
-    elsif keys_entered == '3'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '4'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '5'
-        menu_navigator('main')
-    elsif keys_entered == '6'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end
-end
-
-def array_start_menu(keys_entered) # array start menu runs the option, gets selection from the decipher
-    menu_length = 5
-    if keys_entered == '1'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '2'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '3'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '4'
-        menu_navigator('array')
-    elsif keys_entered == '5'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end
-end
-
-def array_stop_menu(keys_entered) # array stop menu runs the option, gets selection from the decipher
-    menu_length = 7
-    if keys_entered == '1'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '2'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '3'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '4'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '5'
-        puts 'NOT SETUP YET PRESSED 1'
-    elsif keys_entered == '6'
-        menu_navigator('array')
-    elsif keys_entered == '7'
-        menu_navigator('exit')
-    else
-        bad_choice(menu_length)
-    end 
-end
-
 def main_menu(keys_entered) # main menu runs the option, gets selection from the decipher
-    menu_length = 5
+    menu_length = 4
     if keys_entered == "1"
         menu_navigator("setup")
         elsif keys_entered == "2"
@@ -260,8 +178,6 @@ def main_menu(keys_entered) # main menu runs the option, gets selection from the
         elsif keys_entered == "3"
         menu_navigator("tools")
         elsif keys_entered == "4"
-        menu_navigator("array")
-        elsif keys_entered == "5"
         menu_navigator("exit")
         else
         bad_choice(menu_length)
@@ -497,7 +413,7 @@ def mem(keys_entered) # toolbox memory menu runs the option, gets selection from
 end
 
 def realy_exit() # exit command
-    puts "Did you know that everytime this program connects to your server it saves it in multiple logs:"
+    puts "Did you know that everytime this program connects to your server it saves it in multiple logs:" # highlights the logs
     puts "Look in the log directory for the log index named: " + Rainbow("ssh_dashboard_master.log").blue.bright
     exit(true)
 end
@@ -511,7 +427,7 @@ def return_on_enter # this makes the promt wait after running a terminal command
     end
 end
 
-def menu_navigator(option) # this has all the menu lists, part of the Gem: terminal-basic-menu
+def menu_navigator(option) # this has all the menu lists, part of the Gem: terminal-basic-menu, with the original code everything was in this, and this then became a very very long option, i don't think it was built for the amount i put in it
     if option == 'start'
         body_text = "Welcome, to get started we first need to setup a connection, to do that you'll need the following information handy:\n\n- Your servers IP address;\n- Your username; and\n- Your password"
         body_choices = ['Continue', 'Exit']
@@ -530,12 +446,6 @@ def menu_navigator(option) # this has all the menu lists, part of the Gem: termi
         footer_text = "Your current location is: /Main Menu/"
         $current_menu = 'main'
         $menu_full_name = 'Home Menu'
-    elsif option == "ssh"
-        body_text = "How would you like to connect?"
-        body_choices = ['Saved Connections', 'New Connection', 'Return to Main Menu','Exit']
-        footer_text = "Your current location is: /Main Menu/SSH Connections"
-        $current_menu = 'ssh'
-        $menu_full_name = 'SSH Advanced Tool Menu'
     elsif option == 'dash'
         body_text = "What would you like to view?"
         body_choices = ['View Drives', 'View Shares', 'View Docker Services', 'View System Information', 'Rerurn to Main Menu', 'Exit']
@@ -548,24 +458,6 @@ def menu_navigator(option) # this has all the menu lists, part of the Gem: termi
         footer_text = "Your current location is: /Main Menu/SSH ToolBox"
         $current_menu = "tools"
         $menu_full_name = 'SSH ToolBox Menu'
-    elsif option == "array_stop"
-        body_text = "To cleanly stop the array prior to a reboot requires the following in turn.\nFailure to carry out these steps will result in the array requiring being rebuilt and depending on the size of your array this could take days, so please don't skip a step:"
-        body_choices = ['First: Stop the SAMBA serivce', 'Second: UnMount drives', 'Third: Stop the UnRaid server', 'Reboot Server','Shut Down Server', 'Return to Array Menu', 'Exit']
-        footer_text = "Your current location is: /Main Menu/Array tools/Stop the Array"
-        $current_menu = 'array_stop'
-        $menu_full_name = 'UnRaid Array Stop Menu'
-    elsif option == "array_start"
-        body_text = "To start the array requires the following in turn.\nPlease don't skip any steps:"
-        body_choices = ['First: Start the UnRaid server', 'Second: Mount drives', 'Third: Start the SAMBA serivce', 'Return to Array Menu', 'Exit']
-        footer_text = "Your current location is: /Main Menu/Array tools/Start the Array"
-        $current_menu = 'array_start'
-        $menu_full_name = 'UnRaid Array Start Menu'
-    elsif option == "array"
-        body_text = "What would you like to do?"
-        body_choices = ['Start the Array', 'Stop the Array', 'Reboot Server','Shut Down Server', 'Return to Main Menu', 'Exit']
-        footer_text = "Your current location is: /Main Menu/Array tools"
-        $current_menu = 'array'
-        $menu_full_name = 'UnRaid Array Controls Home Menu'
     elsif option == 'cpu'
         body_text = "What would you like to run?"
         body_choices = ['Summary of CPU info', 'Longer report of all CPUs', 'Check for 64bit and virtualization support', 'Return to SSH ToolBox Menu','Exit']
@@ -605,13 +497,14 @@ def menu_navigator(option) # this has all the menu lists, part of the Gem: termi
     elsif option == "exit"
         realy_exit()
     end
-    header_text = 'UnRaid SSH Dashboard v0.51'
+    header_text = "+-+-+-+-+-+-+ +-+-+-+ +-+-+-+-+-+-+-+-+-+\n|U|N|R|A|I|D| |S|S|H| |D|A|S|H|B|O|A|R|D|\n+-+-+-+-+-+-+ +-+-+-+ +-+-+-+-+-+-+-+-+-+"                                                                                                                                                      
+    # header_text = 'UnRaid SSH Dashboard v0.51'
     # ADD ONCE CHANGED TO NEW SEARCH::   footer_text = "Your current location is /#{$current_menu}/#{menu_return_to_previous[menu_full_name]}/"
-    header = { text: header_text, color: :red }
+    header = { text: header_text, color: :magenta }
     body = {text: body_text, choices: body_choices, align: 'center', color: :white }
-    footer = { text: footer_text, align: 'center', color: :blue }    
+    footer = { text: footer_text, align: 'center', color: :yellow }    
     menu1 = Menu.new(header: header, body: body, footer: footer, width: 100)
-    menu1.border_color = :green
+    menu1.border_color = :blue
     system('clear')
     menu1.display_menu
 end
@@ -651,12 +544,6 @@ def keys_entered_decrypter(keys_entered) # sends the keys pressed to the right m
         dash_menu(keys_entered)
     elsif $current_menu == 'tools'
         tools_menu(keys_entered)
-    elsif $current_menu == 'array'
-        array_menu(keys_entered)
-    elsif $current_menu == 'array_stop'
-        array_stop_menu(keys_entered)
-    elsif $current_menu == 'array_start'
-        array_start_menu(keys_entered)
     elsif $current_menu == 'cpu'
         cpu(keys_entered)
     elsif $current_menu == 'mem'
@@ -672,7 +559,7 @@ def keys_entered_decrypter(keys_entered) # sends the keys pressed to the right m
     end
 end
 
-def bad_choice(menu_length) # To respond to unknown entries
+def bad_choice(menu_length) # To respond to unknown entries eg errors
     wrong_selection = 'INCORRECT...'
     print "I didn't recognise that selection, please select a number between 1 and #{menu_length}\nPress the ENTER key to return to #{$menu_full_name} and try again . . . ."
     wrong_selection = gets.chomp
