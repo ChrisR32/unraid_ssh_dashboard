@@ -16,6 +16,7 @@ $result = "FAIL" # not used currently
 $connect_test_result = "NOT CONNECTED" # shows if test connect worked
 $temp_hdd = 'logs/temp1.log' # used in hard drive tools
 $temp_file_hdd = 'logs/temp2.log' # as above both needed 
+$hdd_choice = '' # for storing of hard drive that user wants to scan, mount, unmount eg 'sda' 'sdb' etc...
 
 def test_connection(command) # Confirms connection by checking the directory (pwd) that you log in as (users normally start in their home directory eg. Login in as root the default directory should be root/
     Net::SSH.start($ip_address, $user_name, :password => $password) do |ssh|  # THIS CONNECTS TO SERVER
@@ -224,9 +225,11 @@ def array_menu(keys_entered) # array main menu runs the option, gets selection f
     elsif keys_entered == '2'
         menu_navigator('array_stop')
     elsif keys_entered == '3'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd(network['reboot')
+        return_on_enter
     elsif keys_entered == '4'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd(network['poweroff')
+        return_on_enter
     elsif keys_entered == '5'
         menu_navigator('main')
     elsif keys_entered == '6'
@@ -239,11 +242,14 @@ end
 def array_start_menu(keys_entered) # array start menu runs the option, gets selection from the decipher -- SEE LINE 103 FOR MENU EXPLINATIONS
     menu_length = 5
     if keys_entered == '1'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd('/root/mdcmd start')
+        return_on_enter
     elsif keys_entered == '2'
-        puts 'NOT SETUP YET PRESSED 1'
+        get_desired_drive('mount /dev/#{$hdd_choice}') # sends the user to the hard drive picker tool to nmount drives
+        return_on_enter
     elsif keys_entered == '3'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd('/root/samba start')
+        return_on_enter
     elsif keys_entered == '4'
         menu_navigator('array')
     elsif keys_entered == '5'
@@ -256,15 +262,20 @@ end
 def array_stop_menu(keys_entered) # array stop menu runs the option, gets selection from the decipher -- SEE LINE 103 FOR MENU EXPLINATIONS
     menu_length = 7
     if keys_entered == '1'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd('/root/samba stop')
+        return_on_enter
     elsif keys_entered == '2'
-        puts 'NOT SETUP YET PRESSED 1'
+        get_desired_drive('umount /dev/#{$hdd_choice}') # sends the user to the hard drive picker tool to unmount drives
+        return_on_enter
     elsif keys_entered == '3'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd('/root/mdcmd stop')
+        return_on_enter
     elsif keys_entered == '4'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd('reboot')
+        return_on_enter
     elsif keys_entered == '5'
-        puts 'NOT SETUP YET PRESSED 1'
+        run_ssh_cmd('poweroff')
+        return_on_enter
     elsif keys_entered == '6'
         menu_navigator('array')
     elsif keys_entered == '7'
